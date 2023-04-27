@@ -1,0 +1,60 @@
+title: "AutoMLCup Phase 1"
+version: 2
+description: AutoML Cup Test
+image: logo.png
+registration_auto_approve: True # do not require approval from organizers to join
+docker_image: codalab/codalab-legacy:py39 # the Docker image in which submissions are run
+enable_detailed_results: True
+
+# Documentation web pages
+terms: pages/terms.md
+pages:
+  - title: Overview
+    file: pages/overview.md
+  - title: Data
+    file: pages/data.md
+  - title: Evaluation
+    file: pages/evaluation.md
+
+# Definition of the tasks
+tasks:
+  - index: 0
+    name: Phase 1
+    description: "Diverse 1D tasks"
+    is_public: false
+    input_data: data/input_data
+    reference_data: data/reference_data
+    scoring_program: scoring_program
+    ingestion_program: ingestion_program
+
+phases:
+  - index: 0
+    name: Phase 1
+    description: "Diverse 1D tasks"
+    start: 5-1-2023
+    end: 7-31-2023
+    tasks:
+      - 0
+
+# Leaderboard
+leaderboards:
+  - index: 0
+    title: Results
+    key: Results
+    submission_rule: "Force_Last"
+    columns:
+      - title: Average
+        key: avg
+        index: 0
+        sorting: asc
+        computation: avg
+        computation_indexes:
+          - 1
+      - title: Splice
+        key: splice
+        index: 1
+        sorting: asc
+      - title: Duration
+        key: duration
+        index: 2
+        sorting: desc
