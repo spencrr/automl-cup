@@ -1,4 +1,3 @@
-# pylint: disable=logging-fstring-interpolation, broad-except
 """ingestion program for autoWSL"""
 import argparse
 import datetime
@@ -116,7 +115,7 @@ def _parse_args():
         help="Time budget for predicting model " "if not specified in meta.json.",
     )
     args = parser.parse_args()
-    LOGGER.debug(f"Parsed args are: {args}")
+    LOGGER.debug("Parsed args are: %s", args)
     LOGGER.debug("-" * 50)
     return args
 
@@ -129,8 +128,8 @@ def _init_python_path(args):
 
 
 def _check_umodel_methed(umodel):
-    # Check if the model has methods `train`, `test`.
-    for attr in ["train", "test"]:
+    # Check if the model has methods `train`, `predict`.
+    for attr in ["train", "predict"]:
         if not hasattr(umodel, attr):
             raise ModelApiError(
                 "Your model object doesn't have the method "
@@ -138,13 +137,12 @@ def _check_umodel_methed(umodel):
             )
 
 
-def _train(args, umodel, dataset):
+def _train(args, umodel, dataset: AutoMLCupDataset):
     # Train the model
     timer = Timer()
     timer.set(args.time_budget)
-    train_dataset, train_label = dataset.get_train()
     with timer.time_limit("training"):
-        umodel.train(train_dataset, train_label)
+        umodel.train(dataset)
     duration = timer.duration
     LOGGER.info(f"Finished training the model. time spent {duration:5.2} sec")
 
@@ -157,13 +155,15 @@ def _predict(args):
     # Make predictions using the trained model
     LOGGER.info("===== call prediction")
 
-    predict_args = {
-        "dataset_dir": args.dataset_dir,
-        "model_dir": args.code_dir,
-        "output_dir": args.output_dir,
-        "temp_dir": args.temp_dir,
-        "pred_time_budget": args.pred_time_budget,
-    }
+    predict_args = argparse.Namespace(
+        **{
+            "dataset_dir": args.dataset_dir,
+            "model_dir": args.code_dir,
+            "output_dir": args.output_dir,
+            "temp_dir": args.temp_dir,
+            "pred_time_budget": args.pred_time_budget,
+        }
+    )
     result = predict(predict_args)
     return result
 
@@ -204,10 +204,6 @@ def main():
     args = _parse_args()
     _init_python_path(args)
     dataset = AutoMLCupDataset(args.dataset_dir)
-    LOGGER.info("===== Load metadata.")
-    metadata = dataset.get_metadata()
-    args.time_budget = metadata.get("time_budget", args.time_budget)
-    args.pred_time_budget = metadata.get("pred_time_budget", args.pred_time_budget)
     LOGGER.info(f"Time budget: {args.time_budget}")
 
     LOGGER.info("===== Set alive_thd")
@@ -226,13 +222,13 @@ def main():
     # pylint: disable-next=import-error,import-outside-toplevel
     from model import Model
 
-    umodel = Model(metadata)
+    umodel = Model()
 
     LOGGER.info("===== Check user model methods")
     _check_umodel_methed(umodel)
 
     LOGGER.info("===== Begin training user model")
-    train_result = _train(args, umodel, dataset)
+    train_result = _train(args, umodel, dataset.get_train())
 
     LOGGER.info("===== Begin preding by user model on test set")
     pred_result = _predict(args)

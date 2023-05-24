@@ -1,6 +1,6 @@
 title: "AutoMLCup Phase 1"
 version: 2
-description: AutoML Cup Test
+description: AutoML Cup Phase 1
 image: logo.png
 registration_auto_approve: True # do not require approval from organizers to join
 docker_image: codalab/codalab-legacy:py39 # the Docker image in which submissions are run
@@ -20,10 +20,16 @@ pages:
 tasks:
   - index: 0
     name: Splice
-    description: Splice
+    description: Splice-junction Gene Sequences
     is_public: false
-    input_data: data/splice/input_data
-    reference_data: data/splice/reference_data
+    input_data: data/input_data/splice/
+    scoring_program: scoring_program
+    ingestion_program: ingestion_program
+  - index: 1
+    name: ListOps
+    description: ListOps
+    is_public: false
+    input_data: data/input_data/listops/
     scoring_program: scoring_program
     ingestion_program: ingestion_program
 
@@ -31,10 +37,11 @@ phases:
   - index: 0
     name: Phase 1
     description: "Diverse 1D tasks"
-    start: 5-1-2023
+    start: 6-1-2023
     end: 7-31-2023
     tasks:
       - 0
+      - 1
 
 # Leaderboard
 leaderboards:
@@ -54,7 +61,11 @@ leaderboards:
         key: splice
         index: 1
         sorting: asc
+      - title: ListOps
+        key: listops
+        index: 2
+        sorting: asc
       - title: Duration
         key: duration
-        index: 2
+        index: 3
         sorting: desc

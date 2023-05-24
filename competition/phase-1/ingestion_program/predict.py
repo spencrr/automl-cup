@@ -1,4 +1,3 @@
-# pylint: disable=logging-fstring-interpolation, broad-except
 """prediction"""
 import argparse
 import json
@@ -8,14 +7,13 @@ from sys import path
 
 from common import TimeoutException, Timer, get_logger
 from dataset import AutoMLCupDataset
-
-# pylint: disable=import-error
+from pandas import Series
 
 VERBOSITY_LEVEL = "WARNING"
 LOGGER = get_logger(VERBOSITY_LEVEL, __file__)
 
 
-def _write_predict(output_dir, prediction):
+def _write_predict(output_dir, prediction: Series):
     os.makedirs(output_dir, exist_ok=True)
     prediction.rename("label", inplace=True)
     LOGGER.debug(f"prediction shape: {prediction.shape}")
@@ -33,17 +31,16 @@ def predict(args):
         # pylint: disable-next=import-error,import-outside-toplevel
         from model import Model
 
-        umodel = Model(dataset.get_metadata())
+        umodel = Model()
         timer = Timer()
         timer.set(args.pred_time_budget)
         LOGGER.info("==== start predicting")
         with timer.time_limit("predicting"):
-            umodel.load(args.temp_dir)
-            y_pred = umodel.predict(dataset.get_test())
+            y_pred = umodel.predict(dataset.get_val())
         duration = timer.duration
         LOGGER.info(f"Finished predicting the model. time spent {duration:5.2} sec")
         # Write predictions to output_dir
-        _write_predict(args.output_dir, y_pred)
+        _write_predict(args.output_dir, Series(y_pred))
         result["status"] = "success"
         result["duration"] = duration
     except TimeoutException as ex:

@@ -1,128 +1,41 @@
-"""
-  AutoWSL datasets.
-"""
-import json
-from datetime import datetime
-from glob import glob as ls
-from pathlib import Path
+"""AutoML datasets."""
 
-import numpy as np
-import pandas as pd
+from pathlib import Path
+from typing import List, Optional, Type, TypeVar
+
+from splice import SpliceDataloader
+
 from common import get_logger
+from dataloader import AutoMLCupDataloader
+from datasets import Dataset
+from listops import ListOpsDataloader
 
 VERBOSITY_LEVEL = "WARNING"
 LOGGER = get_logger(VERBOSITY_LEVEL, __file__)
-
-TYPE_MAP = {"time": str, "cat": str, "multi-cat": str, "num": np.float64}
 
 
 class AutoMLCupDataset:
     """AutoMLCupDataset"""
 
-    def __init__(self, dataset_dir: Path):
+    D = TypeVar("D", bound=AutoMLCupDataloader)
+    dataloaders: List[Type[D]] = [ListOpsDataloader, SpliceDataloader]
+
+    def __init__(self, directory: Path):
         """init"""
-        self.dataset_name_ = dataset_dir
-        self.dataset_dir_ = dataset_dir
-        self.metadata_ = self._read_metadata(dataset_dir / "info.json")
-        self.train_dataset = None
-        self.train_label = None
-        self.test_dataset = None
+        dataset: Optional[AutoMLCupDataloader] = None
+        dataset_name = directory.name
 
-    def read_dataset(self):
-        """read dataset"""
-        self.train_dataset = self._read_dataset(self.dataset_dir_ / "train.data")
+        for dataloader in AutoMLCupDataset.dataloaders:
+            if dataset_name == dataloader.name():
+                dataset = dataloader(directory)
+                break
 
-        self.train_label = self.read_label(self.dataset_dir_ / "train.solution")
+        if dataset is None:
+            raise ValueError(f"Dataset from {directory} not found.")
+        self.dataset = dataset
 
-        self.test_dataset = self._read_dataset(self.dataset_dir_ / "test.data")
+    def get_train(self) -> Dataset:
+        return self.dataset.get_train()
 
-    def get_train(self):
-        """get train"""
-        if self.train_dataset is None:
-            self.train_dataset = self._read_dataset(self.dataset_dir_ / "train.data")
-
-            self.train_label = self.read_label(self.dataset_dir_ / "train.solution")
-
-        return self.train_dataset, self.train_label
-
-    def get_test(self):
-        """get test"""
-        if self.test_dataset is None:
-            self.test_dataset = self._read_dataset(self.dataset_dir_ / "test.data")
-
-        return self.test_dataset
-
-    def get_metadata(self):
-        """get metadata"""
-        return self.metadata_
-
-    @staticmethod
-    def _read_metadata(metadata_path):
-        return json.load(open(metadata_path, encoding="utf-8"))
-
-    def _read_dataset(self, dataset_path):
-        schema = self.metadata_["schema"]
-        table_dtype = {key: TYPE_MAP[val] for key, val in schema.items()}
-        date_list = [key for key, val in schema.items() if val == "time"]
-
-        def date_parser(milliseconds):
-            return (
-                milliseconds
-                if np.isnan(float(milliseconds))
-                else datetime.fromtimestamp(float(milliseconds) / 1000)
-            )
-
-        dataset = pd.read_csv(
-            dataset_path,
-            sep="\t",
-            dtype=table_dtype,
-            parse_dates=date_list,
-            date_parser=date_parser,
-        )
-
-        return dataset
-
-    @staticmethod
-    def read_label(label_path):
-        """read_label"""
-        train_label = pd.read_csv(label_path)["label"]
-        return train_label
-
-    def get_train_num(self):
-        """return the number of train instance"""
-        return self.metadata_["train_num"]
-
-    def get_test_num(self):
-        """return the number of test instance"""
-        return self.metadata_["test_num"]
-
-
-def inventory_data(input_dir):
-    """Inventory the datasets in the input directory and
-    return them in alphabetical order"""
-    # Assume first that there is a hierarchy dataname/dataname_train.data
-    training_names = ls(input_dir / "*.data")
-    training_names = [name.split("/")[-1] for name in training_names]
-
-    if not training_names:
-        LOGGER.warning("WARNING: Inventory data - No data file found")
-
-    return sorted(training_names)
-
-
-def get_dataset(args):
-    """get dataset"""
-    datanames = inventory_data(args.dataset_dir)
-    datanames = [x for x in datanames if x.endswith(".data")]
-
-    if len(datanames) != 1:
-        raise ValueError(
-            f"{len(datanames)} datasets found "
-            f"in dataset_dir={args.dataset_dir}!\n"
-            "Please put only ONE dataset under dataset_dir."
-        )
-
-    basename = datanames[0]
-    dataset_name = basename[:-5]
-    dataset = AutoMLCupDataset(args.dataset_dir / basename)
-    return dataset, dataset_name
+    def get_val(self) -> Dataset:
+        return self.dataset.get_val()
