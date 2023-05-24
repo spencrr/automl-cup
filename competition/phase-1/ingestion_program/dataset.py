@@ -1,5 +1,6 @@
 """AutoML datasets."""
 
+import json
 from pathlib import Path
 from typing import List, Optional, Type, TypeVar
 
@@ -23,7 +24,10 @@ class AutoMLCupDataset:
     def __init__(self, directory: Path):
         """init"""
         dataset: Optional[AutoMLCupDataloader] = None
-        dataset_name = directory.name
+
+        with open(directory / "info.json", encoding="utf-8") as json_file:
+            dataset_info = json.load(json_file)
+            dataset_name = dataset_info["name"]
 
         for dataloader in AutoMLCupDataset.dataloaders:
             if dataset_name == dataloader.name():

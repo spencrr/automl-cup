@@ -1,1 +1,1 @@
-command: python3 scoring.py
+command: bash score.sh $submission_program
