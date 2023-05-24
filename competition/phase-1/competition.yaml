@@ -19,11 +19,11 @@ pages:
 # Definition of the tasks
 tasks:
   - index: 0
-    name: Phase 1
-    description: "Diverse 1D tasks"
+    name: Splice
+    description: Splice
     is_public: false
-    input_data: data/input_data
-    reference_data: data/reference_data
+    input_data: data/splice/input_data
+    reference_data: data/splice/reference_data
     scoring_program: scoring_program
     ingestion_program: ingestion_program
 

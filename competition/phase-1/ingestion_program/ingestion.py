@@ -24,7 +24,7 @@ def _cwd() -> Path:
     return Path(__file__).resolve().parent
 
 
-def write_start_file(output_dir):
+def write_start_file(output_dir: Path):
     """Create start file 'start.txt' in `output_dir` with updated timestamp
     start time.
 
@@ -118,32 +118,12 @@ def _parse_args():
     args = parser.parse_args()
     LOGGER.debug(f"Parsed args are: {args}")
     LOGGER.debug("-" * 50)
-    if args.dataset_dir.endswith("run/input") and args.code_dir.endswith("run/program"):
-        LOGGER.debug(
-            "Since dataset_dir ends with 'run/input' and code_dir "
-            "ends with 'run/program', suppose running on "
-            "CodaLab platform. Modify dataset_dir to 'run/input_data'"
-            " and code_dir to 'run/submission'. "
-            "Directory parsing should be more flexible in the code of"
-            " compute worker: we need explicit directories for "
-            "dataset_dir and code_dir."
-        )
-
-        args.dataset_dir = args.dataset_dir.replace("run/input", "run/input_data")
-        args.code_dir = args.code_dir.replace("run/program", "run/submission")
-
-        # Show directories for debugging
-        LOGGER.debug(f"sys.argv = {sys.argv}")
-        LOGGER.debug(f"Using dataset_dir: {args.dataset_dir}")
-        LOGGER.debug(f"Using output_dir: {args.output_dir}")
-        LOGGER.debug(f"Using ingestion_program_dir: {args.ingestion_program_dir}")
-        LOGGER.debug(f"Using code_dir: {args.code_dir}")
     return args
 
 
 def _init_python_path(args):
-    sys.path.append(args.ingestion_program_dir)
-    sys.path.append(args.code_dir)
+    sys.path.append(str(args.ingestion_program_dir))
+    sys.path.append(str(args.code_dir))
     args.output_dir.mkdir(exist_ok=True)
     args.temp_dir.mkdir(exist_ok=True)
 

@@ -6,7 +6,7 @@ import os
 from os.path import join
 from sys import path
 
-from common import get_logger, Timer, TimeoutException
+from common import TimeoutException, Timer, get_logger
 from dataset import AutoMLCupDataset
 
 # pylint: disable=import-error

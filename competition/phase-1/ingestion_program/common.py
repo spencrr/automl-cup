@@ -1,10 +1,10 @@
 # pylint: disable=logging-fstring-interpolation, broad-except
 """common"""
-import signal
-import math
 import logging
-import time
+import math
+import signal
 import sys
+import time
 from contextlib import contextmanager
 
 

@@ -4,15 +4,15 @@
 import argparse
 import datetime
 import glob
-from pathlib import Path
 import json
 import logging
 import sys
 import time
-import yaml
-from filelock import FileLock
+from pathlib import Path
 
 import pandas as pd
+import yaml
+from filelock import FileLock
 from sklearn.metrics import roc_auc_score
 
 VERBOSITY_LEVEL = "INFO"
