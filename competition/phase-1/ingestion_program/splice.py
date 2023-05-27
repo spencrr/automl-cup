@@ -25,7 +25,9 @@ class SpliceDataloader(AutoMLCupDataloader):
 
             self.dataset = (
                 load_dataset(
-                    "mstz/splice", "splice", data_dir=directory / SpliceDataloader.name
+                    "mstz/splice",
+                    "splice",
+                    data_dir=directory / SpliceDataloader.name(),
                 )["train"]
                 .map(
                     positions_to_vec,
