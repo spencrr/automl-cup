@@ -38,8 +38,8 @@ class AutoMLCupDataset:
             raise ValueError(f"Dataset from {directory} not found.")
         self.dataset = dataset
 
-    def get_train(self) -> Dataset:
-        return self.dataset.get_train()
+    def name(self) -> str:
+        return self.dataset.name()
 
-    def get_val(self) -> Dataset:
-        return self.dataset.get_val()
+    def get_split(self, split: str) -> Dataset:
+        return self.dataset.get_split(split)

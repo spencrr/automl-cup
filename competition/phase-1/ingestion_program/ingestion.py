@@ -142,7 +142,7 @@ def _train(args, umodel, dataset: AutoMLCupDataset):
     timer = Timer()
     timer.set(args.time_budget)
     with timer.time_limit("training"):
-        umodel.train(dataset)
+        umodel.train(dataset.get_split("train"), dataset.get_split("val"))
     duration = timer.duration
     LOGGER.info(f"Finished training the model. time spent {duration:5.2} sec")
 
@@ -228,7 +228,7 @@ def main():
     _check_umodel_methed(umodel)
 
     LOGGER.info("===== Begin training user model")
-    train_result = _train(args, umodel, dataset.get_train())
+    train_result = _train(args, umodel, dataset)
 
     LOGGER.info("===== Begin preding by user model on test set")
     pred_result = _predict(args)

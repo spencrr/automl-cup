@@ -13,9 +13,5 @@ class AutoMLCupDataloader(ABC):
         self.directory = directory
 
     @abstractmethod
-    def get_train(self) -> Dataset:
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_val(self) -> Dataset:
+    def get_split(self, split: str) -> Dataset:
         raise NotImplementedError

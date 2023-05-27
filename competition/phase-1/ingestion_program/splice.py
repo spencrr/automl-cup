@@ -8,6 +8,7 @@ class SpliceDataloader(AutoMLCupDataloader):
     def name():
         return "splice"
 
+    val_size = 0.1
     test_size = 0.1
     shuffle = False
 
@@ -20,10 +21,10 @@ class SpliceDataloader(AutoMLCupDataloader):
         else:
 
             def positions_to_vec(example):
-                example["sequence"] = list(example[f"position_{i}"] for i in range(60))
+                example["input"] = list(example[f"position_{i}"] for i in range(60))
                 return example
 
-            self.dataset = (
+            train_val_test_dataset = (
                 load_dataset(
                     "mstz/splice",
                     "splice",
@@ -33,16 +34,32 @@ class SpliceDataloader(AutoMLCupDataloader):
                     positions_to_vec,
                     remove_columns=list(f"position_{i}" for i in range(60)),
                 )
+                .rename_column("class", "label")
                 .train_test_split(
-                    test_size=SpliceDataloader.test_size,
+                    test_size=SpliceDataloader.val_size + SpliceDataloader.test_size,
                     shuffle=SpliceDataloader.shuffle,
                 )
+            )
+            val_test_dataset = train_val_test_dataset["test"].train_test_split(
+                test_size=(
+                    SpliceDataloader.test_size
+                    / (SpliceDataloader.val_size + SpliceDataloader.test_size)
+                ),
+                shuffle=SpliceDataloader.shuffle,
+            )
+
+            self.dataset = DatasetDict(
+                {
+                    "train": train_val_test_dataset["train"],
+                    "val": val_test_dataset["train"],
+                    "test": val_test_dataset["test"],
+                }
             )
 
             self.dataset.save_to_disk(cache_directory)
 
-    def get_train(self):
-        return self.dataset["train"]
+        print(self.dataset)
 
-    def get_val(self):
-        return self.dataset["test"]
+    def get_split(self, split):
+        if split in ["train", "val", "test"]:
+            return self.dataset[split]

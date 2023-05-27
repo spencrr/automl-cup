@@ -36,7 +36,7 @@ def predict(args):
         timer.set(args.pred_time_budget)
         LOGGER.info("==== start predicting")
         with timer.time_limit("predicting"):
-            y_pred = umodel.predict(dataset.get_val())
+            y_pred = umodel.predict(dataset.get_split("test").remove_columns("label"))
         duration = timer.duration
         LOGGER.info(f"Finished predicting the model. time spent {duration:5.2} sec")
         # Write predictions to output_dir

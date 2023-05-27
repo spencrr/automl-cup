@@ -357,14 +357,19 @@ class ListOpsDataloader(AutoMLCupDataloader):
     def __init__(self, directory: Path, **kwargs):
         super().__init__(directory, **kwargs)
         listops_dataset = ListOpsDataset(directory=directory)
-        self.dataset: DatasetDict
-        (self.dataset, _tokenizer, _vocab) = listops_dataset.process_dataset()
+        dataset: DatasetDict
+        (dataset, _tokenizer, _vocab) = listops_dataset.process_dataset()
 
-    def get_train(self):
-        return self.dataset["train"]
+        self.dataset = dataset.rename_columns(
+            {
+                "input_ids": "input",
+                "Target": "label",
+            }
+        )
 
-    def get_val(self):
-        return self.dataset["val"]
+    def get_split(self, split):
+        if split in ["train", "val", "test"]:
+            return self.dataset[split]
 
 
 # LRA tokenizer renames ']' to 'X' and delete parentheses as their tokenizer removes
