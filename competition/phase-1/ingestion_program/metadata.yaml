@@ -1,1 +1,0 @@
-command: bash ingest.sh $submission_program $input
