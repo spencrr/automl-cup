@@ -1,13 +1,13 @@
 export BROKER_URL= # PUT BROKER_URL from https://www.codabench.org/queues/ here
 
 docker run \
-    -v $PWD/storage:/codabench \
+    -v $(pwd)/storage:/codabench \
+    -v $(pwd)/datasets:/datasets \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -d \
-    --env BROKER_URL=$BROKER_URL \
-    --env HOST_DIRECTORY=$PWD/storage \
+    --env-file queue.env \
     --name compute_worker \
     --restart unless-stopped \
     --log-opt max-size=50m \
     --log-opt max-file=3 \
-    codalab/competitions-v2-compute-worker:nvidia
+    automlcup2023/compute_worker
